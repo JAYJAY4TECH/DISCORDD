@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Big Catch Salvage and Thrift</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  /* Overflow safety net: never allow a horizontal scrollbar, no matter how narrow the screen */
+  html { overflow-x: clip; -webkit-text-size-adjust: 100%; }
+  body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; color: #2c2c2c; background: #fff; font-size: 14px; overflow-x: clip; }
+  a { color: inherit; text-decoration: none; cursor: pointer; }
+  button { font-family: inherit; }
+  /* Media must never be wider than its container */
+  img, video, iframe { max-width: 100%; }
+  /* Long words, URLs and IDs must wrap instead of forcing the page wider */
+  h1, h2, h3, h4, p, li, span, div, a, td, th, label, strong, em { overflow-wrap: break-word; }
+
+  .topbar { background: #e6275f; color: #fff; text-align: center; padding: 14px 20px; font-size: 13px; font-weight: 700; line-height: 1.4; }
+  .topbar a { color: #fff; text-decoration: underline; }
+
+  header { border-bottom: 1px solid #e5e5e5; padding: 20px 24px; }
+  .header-inner { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px 20px; max-width: 1400px; margin: 0 auto; flex-wrap: wrap; }
+  .logo { font-size: 22px; font-weight: 900; letter-spacing: 1px; line-height: 1.05; text-transform: uppercase; color: #3a3a3a; max-width: 260px; cursor: pointer; min-width: 0; }
+  .logo span { display: block; }
+  .header-icons { display: flex; align-items: center; gap: 18px; padding-top: 4px; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
+  .header-icons button { background: none; border: none; cursor: pointer; padding: 0; color: #2c2c2c; position: relative; display: inline-flex; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; }
+  .header-icons svg { width: 22px; height: 22px; display: block; }
+  .cart-badge { position: absolute; top: -6px; right: -8px; background: #4a90c4; color: #fff; font-size: 10px; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .layout { display: flex; gap: 40px; padding: 30px 40px; max-width: 1400px; margin: 0 auto; }
+  .sidebar { width: 180px; flex-shrink: 0; }
+  .sidebar h2 { font-size: 18px; font-weight: 800; margin-bottom: 16px; letter-spacing: 0.5px; }
+  .sidebar .filter-list { max-height: 70vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding-right: 8px; }
+  .sidebar .filter-list a { display: block; font-size: 12px; padding: 3px 0; color: #444; line-height: 1.4; }
+  .sidebar .filter-list a:hover { text-decoration: underline; }
+  .sidebar .filter-list a.sold { color: #999; text-decoration: line-through; }
+  .main { flex: 1; min-width: 0; }
+  .main-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  .main-head h1 { font-size: 22px; font-weight: 800; letter-spacing: 0.5px; }
+  .main-head .count { font-size: 13px; color: #666; margin-left: 12px; font-weight: normal; }
+  .main-head select { padding: 8px 12px; border: 1px solid #ccc; border-radius: 3px; font-size: 13px; background: #fff; max-width: 100%; }
+  .filter-toggles { display: flex; gap: 16px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+  .filter-toggles label { font-size: 12px; color: #555; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .filter-toggles input { cursor: pointer; }
+
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px 20px; }
+  .card { display: flex; flex-direction: column; position: relative; }
+  .card-img-wrap { position: relative; background: #f6f6f6; overflow: hidden; aspect-ratio: 1/1; cursor: pointer; }
+  .card-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s; }
+  .card:hover .card-img-wrap img { transform: scale(1.03); }
+  .card.sold .card-img-wrap img { filter: grayscale(0.6) brightness(0.75); }
+  .badge-sale { position: absolute; top: 10px; left: 10px; background: #fff; color: #1a1a1a; font-size: 11px; padding: 3px 10px; border-radius: 20px; z-index: 2; font-weight: 600; }
+  .badge-noship { position: absolute; top: 10px; right: 10px; background: #1a1a1a; color: #fff; font-size: 10px; padding: 3px 8px; border-radius: 3px; z-index: 2; }
+  .badge-sold {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-12deg);
+    background: #c0392b; color: #fff; font-size: 22px; font-weight: 900; letter-spacing: 3px;
+    padding: 10px 26px; border-radius: 6px; z-index: 3; box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    border: 3px solid #fff;
+  }
+  .card-body { padding-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .card-title { font-size: 13px; line-height: 1.4; cursor: pointer; }
+  .card.sold .card-title { color: #999; }
+  .card-price { font-size: 13px; font-weight: 600; }
+  .card.sold .card-price { color: #999; }
+  .card-price .was { text-decoration: line-through; color: #888; margin-right: 8px; font-weight: 400; }
+  .card-price .now { color: #c0392b; font-weight: 700; }
+  .card .add-btn { margin-top: 8px; padding: 9px; background: #1a1a1a; color: #fff; border: none; border-radius: 3px; font-size: 12px; cursor: pointer; opacity: 0; transition: opacity 0.2s; }
+  .card:hover .add-btn { opacity: 1; }
+  .card .add-btn.sold { background: #c0392b; opacity: 1 !important; cursor: not-allowed; }
+
+  .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 40px 0 20px; font-size: 13px; flex-wrap: wrap; }
+  .pagination a { padding: 8px 14px; border: 1px solid #e5e5e5; border-radius: 3px; cursor: pointer; user-select: none; transition: all 0.15s; }
+  .pagination a:hover { background: #f6f6f6; border-color: #ccc; }
+  .pagination a.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; cursor: default; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 40px 24px; }
+
+  /* PRODUCT DETAIL PAGE */
+  .product-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 24px; }
+  .product-gallery { display: flex; flex-direction: column; gap: 12px; }
+  .gallery-main { position: relative; background: #f6f6f6; border-radius: 6px; overflow: hidden; aspect-ratio: 1/1; }
+  .gallery-main img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .gallery-main .badge-sold-lg {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-12deg);
+    background: #c0392b; color: #fff; font-size: 32px; font-weight: 900; letter-spacing: 4px;
+    padding: 14px 36px; border-radius: 8px; border: 4px solid #fff;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+  }
+  .gallery-thumbs { display: grid; grid-template-columns: repeat(var(--thumbs, 6), minmax(0, 1fr)); gap: 8px; }
+  .gallery-thumbs img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 4px; cursor: pointer; border: 2px solid transparent; transition: border-color 0.15s; background: #f6f6f6; }
+  .gallery-thumbs img:hover { border-color: #ccc; }
+  .gallery-thumbs img.active { border-color: #1a1a1a; }
+
+  .cart-title { text-align: center; font-size: 34px; font-weight: 800; margin: 30px 0 40px; color: #3a3a3a; }
+  .cart-item { display: flex; gap: 20px; padding: 24px 0; border-bottom: 1px solid #e5e5e5; align-items: flex-start; flex-wrap: wrap; }
+  .cart-item img { width: 90px; height: 90px; object-fit: cover; background: #f6f6f6; border-radius: 3px; flex-shrink: 0; }
+  .cart-item-info { flex: 1 1 55%; min-width: 0; }
+  .cart-item-info h3 { font-size: 14px; margin-bottom: 8px; font-weight: 500; line-height: 1.4; }
+  .cart-item-price { font-weight: 600; flex: 0 0 auto; white-space: nowrap; }
+  .cart-item-edit { padding: 8px 18px; border: 1px solid #ccc; background: #fff; font-size: 11px; letter-spacing: 1px; cursor: pointer; font-weight: 600; flex: 0 0 auto; }
+  .cart-summary { text-align: center; margin-top: 40px; }
+  .cart-subtotal { display: flex; justify-content: center; gap: 30px; font-size: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .cart-subtotal span:first-child { color: #555; }
+  .cart-subtotal span:last-child { font-weight: 600; }
+  .cart-installment { text-align: center; font-size: 13px; color: #555; margin-bottom: 10px; }
+  .cart-shipping-note { text-align: center; font-style: italic; font-size: 13px; color: #777; margin: 20px 0 24px; }
+  .checkout-btn { display: block; width: 100%; max-width: 400px; margin: 0 auto 16px; padding: 16px; background: #93b3cc; color: #fff; border: none; font-size: 13px; font-weight: 700; letter-spacing: 2px; cursor: pointer; }
+  .checkout-btn:hover { background: #7fa2bd; }
+  .pay-buttons { display: flex; gap: 12px; max-width: 400px; margin: 0 auto; justify-content: center; flex-wrap: wrap; }
+  .pay-btn { flex: 1 1 0; min-width: 0; padding: 14px; border: none; border-radius: 4px; font-weight: 700; font-size: 16px; cursor: pointer; }
+  .pay-shop { background: #5433eb; color: #fff; }
+  .pay-apple { background: #000; color: #fff; }
+  .pay-paypal { background: #ffc439; color: #003087; }
+
+  .contact-title { text-align: center; font-size: 40px; font-weight: 800; margin: 40px 0; letter-spacing: 0.5px; color: #3a3a3a; }
+  .contact-form { max-width: 600px; margin: 0 auto; }
+  .contact-form label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; margin-top: 20px; }
+  .contact-form input, .contact-form textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 3px; font-size: 14px; font-family: inherit; }
+  .contact-form textarea { min-height: 200px; resize: vertical; }
+  .send-btn { margin-top: 24px; padding: 14px 40px; background: #7ba3c4; color: #fff; border: none; font-size: 13px; font-weight: 700; letter-spacing: 2px; cursor: pointer; border-radius: 3px; }
+
+  .contact-info { max-width: 600px; margin: 0 auto 40px; text-align: center; padding: 24px; background: #f9f9f9; border-radius: 8px; border: 1px solid #e5e5e5; }
+  .contact-info h3 { font-size: 16px; font-weight: 800; margin-bottom: 12px; }
+  .contact-info a.phone { font-size: 22px; font-weight: 800; color: #e6275f; display: block; margin: 8px 0; }
+  .contact-info a.phone:hover { text-decoration: underline; }
+  .contact-info p { font-size: 13px; color: #666; margin-top: 8px; }
+
+  /* WHATSAPP BUTTON STYLES */
+  .wa-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    background: #25D366; color: #fff; padding: 14px 28px; border-radius: 6px;
+    font-size: 14px; font-weight: 700; border: none; cursor: pointer;
+    text-decoration: none; transition: background 0.2s;
+    line-height: 1;
+  }
+  .wa-btn:hover { background: #1ebe5b; color: #fff; }
+  .wa-btn svg { width: 22px; height: 22px; flex-shrink: 0; fill: #fff; }
+  .wa-btn.large { padding: 16px 36px; font-size: 15px; }
+  .wa-btn.block { display: flex; width: 100%; max-width: 400px; margin: 12px auto 0; }
+
+  /* FLOATING WHATSAPP BUTTON */
+  .wa-float {
+    position: fixed; bottom: calc(90px + env(safe-area-inset-bottom, 0px)); right: 20px; z-index: 99;
+    width: 60px; height: 60px; border-radius: 50%;
+    background: #25D366; color: #fff; border: none; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(37,211,102,0.5);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+  }
+  .wa-float:hover { transform: scale(1.1); box-shadow: 0 6px 22px rgba(37,211,102,0.7); color: #fff; }
+  .wa-float svg { width: 34px; height: 34px; fill: #fff; }
+  .wa-float::after {
+    content: 'Chat on WhatsApp'; position: absolute; right: 72px; top: 50%;
+    transform: translateY(-50%); background: #1a1a1a; color: #fff;
+    padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .wa-float:hover::after { opacity: 1; }
+
+  /* PAYMENT STEPS */
+  .pay-steps { background: #fff8e6; border: 1px solid #ffe08a; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: left; }
+  .pay-steps h3 { font-size: 14px; font-weight: 800; margin-bottom: 12px; color: #7a5c00; display: flex; align-items: center; gap: 8px; }
+  .pay-steps ol { padding-left: 20px; font-size: 13px; color: #555; line-height: 1.8; }
+  .pay-steps ol li { margin-bottom: 6px; }
+  .pay-steps strong { color: #2c2c2c; }
+
+  .screenshot-note {
+    background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px;
+    padding: 16px; margin: 16px 0; font-size: 13px; color: #2e7d32;
+    display: flex; align-items: flex-start; gap: 10px; text-align: left;
+  }
+  .screenshot-note .icon { font-size: 20px; flex-shrink: 0; }
+  .screenshot-note strong { color: #1b5e20; }
+
+  footer { padding: 40px 24px; text-align: center; color: #555; font-size: 13px; margin-top: 40px; }
+  .footer-links { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-bottom: 20px; }
+  .footer-links a { color: #555; }
+  .footer-links a:hover { text-decoration: underline; }
+  .footer-support { margin: 20px auto; padding: 24px; background: #f9f9f9; border-radius: 8px; display: inline-block; text-align: center; max-width: 100%; }
+  .footer-support .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #888; font-weight: 700; margin-bottom: 12px; }
+  .footer-support a.phone { font-size: 18px; font-weight: 800; color: #e6275f; display: block; margin: 6px 0; }
+  .footer-support a.phone:hover { text-decoration: underline; }
+  .copyright { font-size: 12px; color: #888; margin-top: 20px; }
+
+  .admin-form { display: grid; gap: 10px; padding: 24px; border: 1px solid #e5e5e5; border-radius: 4px; margin-bottom: 32px; }
+  .admin-form label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: #555; }
+  .admin-form input[type=text], .admin-form input[type=number], .admin-form input[type=password] { padding: 10px; border: 1px solid #ccc; border-radius: 3px; font-size: 14px; width: 100%; }
+  .admin-form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .admin-form .row > div { min-width: 0; }
+  .admin-form .checkbox-line { display: flex; align-items: center; gap: 8px; font-weight: normal; text-transform: none; letter-spacing: 0; }
+  .admin-list { display: grid; gap: 10px; }
+  .admin-item { display: flex; gap: 12px; align-items: center; padding: 12px; border: 1px solid #e5e5e5; border-radius: 4px; flex-wrap: wrap; }
+  .admin-item img { width: 60px; height: 60px; object-fit: cover; background: #f6f6f6; border-radius: 3px; flex-shrink: 0; }
+  .admin-item-info { flex: 1 1 55%; min-width: 0; font-size: 13px; }
+  .admin-item-actions { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+  .admin-item button { padding: 6px 12px; font-size: 12px; cursor: pointer; border-radius: 3px; border: 1px solid #ccc; background: #fff; }
+  .admin-item button.delete { color: #c0392b; border-color: #c0392b; }
+
+  .btn { padding: 12px 24px; background: #1a1a1a; color: #fff; border: none; border-radius: 3px; font-size: 13px; cursor: pointer; display: inline-block; font-weight: 600; }
+  .btn:hover { background: #333; }
+  .btn.secondary { background: #fff; color: #1a1a1a; border: 1px solid #1a1a1a; }
+  .btn.secondary:hover { background: #f6f6f6; }
+
+  .pay-box { max-width: 460px; margin: 0 auto; text-align: center; }
+  .pay-box img.qr { width: 240px; max-width: 100%; height: auto; aspect-ratio: 1/1; margin: 24px auto; display: block; border: 1px solid #e5e5e5; border-radius: 6px; background: #fafafa; }
+  .pay-total { font-size: 22px; font-weight: 700; margin: 16px 0; }
+  .pay-box input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 3px; font-size: 14px; margin-bottom: 16px; }
+
+  .admin-login-box { max-width: 400px; margin: 80px auto; padding: 40px; border: 1px solid #e5e5e5; border-radius: 8px; background: #fafafa; text-align: center; }
+  .admin-login-box h2 { font-size: 22px; font-weight: 800; margin-bottom: 24px; }
+  .admin-login-box input { width: 100%; padding: 12px; margin-bottom: 16px; border: 1px solid #ccc; border-radius: 3px; font-size: 14px; }
+  .admin-login-box .error { color: #c0392b; font-size: 13px; margin-top: 8px; }
+
+  .home-hero { background: #f9f9f9; padding: 60px 24px; text-align: center; border-bottom: 1px solid #e5e5e5; }
+  .home-hero h1 { font-size: 42px; font-weight: 900; letter-spacing: 1px; color: #2c2c2c; margin-bottom: 12px; }
+  .home-hero p { font-size: 16px; color: #666; max-width: 600px; margin: 0 auto 24px; line-height: 1.6; }
+  .home-hero .btn { font-size: 14px; padding: 14px 40px; }
+  .home-hero .support-line { margin-top: 28px; font-size: 14px; color: #555; }
+  .home-hero .support-line a { color: #e6275f; font-weight: 800; font-size: 16px; }
+  .home-hero .support-line a:hover { text-decoration: underline; }
+
+  /* SLIDE-OUT NAVIGATION MENU */
+  .nav-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100dvh; background: rgba(0,0,0,0.5); z-index: 998; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+  .nav-overlay.open { opacity: 1; pointer-events: auto; }
+  .nav-menu { position: fixed; top: 0; right: 0; width: 320px; max-width: 85vw; height: 100vh; height: 100dvh; background: #fff; z-index: 999; transform: translateX(100%); transition: transform 0.3s ease; display: flex; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding-bottom: env(safe-area-inset-bottom, 0px); box-shadow: -6px 0 30px rgba(0,0,0,0.15); }
+  .nav-menu.open { transform: translateX(0); }
+  .nav-menu-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #e5e5e5; }
+  .nav-menu-title { font-size: 14px; font-weight: 800; letter-spacing: 2px; color: #3a3a3a; }
+  .nav-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #666; padding: 4px 8px; line-height: 1; }
+  .nav-close:hover { color: #000; }
+  .nav-links { display: flex; flex-direction: column; padding: 16px 0; }
+  .nav-links a { padding: 14px 24px; font-size: 15px; font-weight: 600; color: #2c2c2c; border-left: 3px solid transparent; transition: all 0.15s; }
+  .nav-links a:hover { background: #f9f9f9; border-left-color: #e6275f; color: #e6275f; }
+  .nav-divider { height: 1px; background: #e5e5e5; margin: 8px 24px; }
+  .nav-support { padding: 20px 24px 32px; margin-top: auto; }
+  .nav-support-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #888; font-weight: 700; margin-bottom: 12px; }
+  .nav-phone { display: block; font-size: 16px; font-weight: 800; color: #e6275f; margin-bottom: 8px; }
+  .nav-phone:hover { text-decoration: underline; }
+
+  /* LAYOUT HELPERS (previously inline styles) */
+  .home-why { max-width: 1200px; margin: 0 auto; padding: 60px 24px; text-align: center; }
+  .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 30px; margin-top: 40px; }
+  .admin-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+
+  /* =========================================================
+     RESPONSIVE — 320px phones → 2560px+ desktops
+     ========================================================= */
+
+  /* Touch devices have no :hover, so hover-revealed controls must stay visible */
+  @media (hover: none), (pointer: coarse) {
+    .card .add-btn { opacity: 1; }
+  }
+
+  @media (max-width: 1200px) {
+    .layout { padding: 30px 24px; gap: 32px; }
+  }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; padding: 20px; gap: 24px; }
+    .sidebar { width: 100%; }
+    .sidebar .filter-list { max-height: 40vh; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 12px; }
+    header { padding: 16px 20px; }
+    .logo { font-size: 20px; }
+    .contact-title, .cart-title { font-size: 32px; }
+    .home-hero h1 { font-size: 28px; }
+    .wa-float { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); right: 14px; width: 56px; height: 56px; }
+    .wa-float svg { width: 30px; height: 30px; }
+    .nav-menu { width: 280px; }
+    .product-detail { grid-template-columns: 1fr; gap: 24px; }
+    .badge-sold { font-size: 18px; padding: 8px 20px; }
+    /* Admin page (index.html) must stack on anything narrower than a desktop */
+    .admin-form .row { grid-template-columns: 1fr; }
+    .admin-form { padding: 20px 16px; }
+    .home-why { padding: 48px 20px; }
+    .why-grid { gap: 24px; }
+    .footer-links { gap: 18px; }
+    footer { padding: 32px 20px; }
+  }
+
+  @media (max-width: 700px) {
+    .container { padding: 32px 20px; }
+    .home-hero { padding: 44px 20px; }
+    .home-hero h1 { font-size: 26px; }
+    .home-hero p { font-size: 15px; }
+    .contact-info { padding: 20px 16px; }
+    .contact-form textarea { min-height: 160px; }
+    .contact-title, .cart-title { margin: 30px 0 32px; }
+    .cart-item { gap: 14px; }
+    .cart-item img { width: 72px; height: 72px; }
+    .cart-subtotal { gap: 18px; }
+    .pay-buttons { gap: 8px; }
+    .pay-btn { padding: 13px 6px; font-size: 15px; }
+    .badge-sold-lg { font-size: 24px; letter-spacing: 2px; padding: 10px 22px; }
+    .pay-steps { padding: 16px; }
+    .admin-login-box { margin: 48px auto; padding: 28px 20px; }
+    .gallery-thumbs { gap: 6px; }
+    .pagination { padding: 30px 0 16px; gap: 6px; }
+    .pagination a { padding: 8px 10px; }
+    .main-head { margin-bottom: 18px; }
+    .filter-toggles { margin-bottom: 16px; }
+    /* 16px prevents iOS Safari from auto-zooming the viewport when a field is focused */
+    .contact-form input, .contact-form textarea, .pay-box input, .admin-login-box input { font-size: 16px; }
+  }
+
+  /* Small phones (iPhone SE / Galaxy Fold and narrower) */
+  @media (max-width: 480px) {
+    .topbar { padding: 12px 14px; font-size: 12px; }
+    header { padding: 14px 14px; }
+    .header-inner { gap: 10px 12px; }
+    .header-icons { gap: 14px; }
+    .logo { font-size: 18px; letter-spacing: 0.5px; }
+    .layout { padding: 16px 14px; }
+    .container { padding: 28px 14px; }
+    .sidebar .filter-list { padding-right: 4px; }
+    .main-head h1 { font-size: 18px; }
+    .main-head .count { margin-left: 0; }
+    .main-head select { width: 100%; }
+    .filter-toggles { gap: 10px; }
+    .grid { gap: 18px 10px; }
+    .card-body { padding-top: 8px; }
+    .card .add-btn { padding: 10px 4px; font-size: 11px; }
+    .badge-sale, .badge-noship { top: 7px; }
+    .badge-sale { left: 7px; font-size: 10px; padding: 3px 7px; }
+    .badge-noship { right: 7px; font-size: 9px; padding: 2px 5px; }
+    .badge-sold { font-size: 15px; letter-spacing: 2px; padding: 7px 14px; }
+    .badge-sold-lg { font-size: 18px; letter-spacing: 1.5px; padding: 8px 16px; border-width: 3px; }
+    .home-hero { padding: 36px 16px; }
+    .home-hero h1 { font-size: 22px; letter-spacing: 0.5px; }
+    .home-hero .btn { width: 100%; }
+    .home-hero .wa-btn.large { width: 100%; }
+    .home-hero .support-line a { font-size: 15px; }
+    .home-why { padding: 36px 16px; }
+    .why-grid { gap: 20px; margin-top: 28px; }
+    .contact-title, .cart-title { font-size: 26px; margin: 24px 0 28px; }
+    .contact-info { padding: 18px 14px; }
+    .contact-info a.phone { font-size: 19px; }
+    .send-btn { width: 100%; padding: 14px 20px; }
+    .checkout-btn { padding: 15px 10px; letter-spacing: 1px; }
+    .wa-btn.large { padding: 14px 20px; font-size: 14px; }
+    .wa-btn.block { max-width: 100%; }
+    .cart-item { flex-wrap: wrap; row-gap: 10px; gap: 12px; }
+    .cart-item img { width: 64px; height: 64px; }
+    .cart-item-info { flex: 1 1 45%; }
+    .cart-item-price { margin-left: auto; }
+    .cart-summary { margin-top: 30px; }
+    .pay-box img.qr { width: 100%; max-width: 220px; }
+    .pay-steps ol { padding-left: 18px; }
+    .wa-float { width: 52px; height: 52px; right: 12px; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+    .wa-float svg { width: 28px; height: 28px; }
+    .wa-float::after { display: none; }
+    .nav-menu { width: min(280px, 88vw); }
+    .nav-menu-header { padding: 16px 18px; }
+    .nav-links a { padding: 13px 18px; font-size: 14px; }
+    .nav-support { padding: 18px 18px 28px; }
+    .admin-form { padding: 18px 14px; }
+    .admin-form input[type=text], .admin-form input[type=number], .admin-form input[type=password] { font-size: 16px; }
+    .admin-item { padding: 10px; gap: 10px; }
+    .admin-item img { width: 52px; height: 52px; }
+    .admin-item-actions { width: 100%; }
+    .admin-item-actions button { flex: 1 1 0; padding: 10px 8px; }
+    footer { padding: 28px 14px; }
+    .footer-links { gap: 14px; font-size: 12px; }
+    .footer-support { padding: 18px 14px; display: block; }
+    .footer-support .wa-btn { width: 100%; }
+    .footer-support a.phone { font-size: 17px; }
+  }
+
+  /* Very narrow phones (320px) */
+  @media (max-width: 360px) {
+    .logo { font-size: 16px; }
+    .header-icons { gap: 10px; }
+    .layout, .container { padding-left: 12px; padding-right: 12px; }
+    .home-hero h1 { font-size: 20px; }
+    .cart-item img { width: 56px; height: 56px; }
+    .pagination a { padding: 7px 8px; }
+  }
+
+  /* Large desktop / ultrawide — keep line lengths comfortable */
+  @media (min-width: 1800px) {
+    .layout, .header-inner { max-width: 1400px; }
+  }
+  /* =========================================================
+     MOTION SYSTEM — reveals, hovers, bubbles, loading states
+     ========================================================= */
+  :root {
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+    --dur-1: 0.18s; --dur-2: 0.32s; --dur-3: 0.6s;
+  }
+
+  @keyframes mxFade { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes mxUp { from { opacity: 0; transform: translate3d(0, 20px, 0) } to { opacity: 1; transform: none } }
+  @keyframes mxDown { from { opacity: 0; transform: translate3d(0, -16px, 0) } to { opacity: 1; transform: none } }
+  @keyframes mxLeft { from { opacity: 0; transform: translate3d(-22px, 0, 0) } to { opacity: 1; transform: none } }
+  @keyframes mxRight { from { opacity: 0; transform: translate3d(22px, 0, 0) } to { opacity: 1; transform: none } }
+  @keyframes mxScale { from { opacity: 0; transform: scale(0.95) } to { opacity: 1; transform: none } }
+  @keyframes mxPop { 0% { transform: scale(1) } 45% { transform: scale(1.32) } 75% { transform: scale(0.93) } 100% { transform: scale(1) } }
+  @keyframes mxShimmer { from { background-position: -160% 0 } to { background-position: 160% 0 } }
+  @keyframes mxFloat {
+    0%   { transform: translate3d(0, 0, 0) scale(1) }
+    25%  { transform: translate3d(16px, -26px, 0) scale(1.06) }
+    50%  { transform: translate3d(-8px, -50px, 0) scale(0.96) }
+    75%  { transform: translate3d(-24px, -22px, 0) scale(1.04) }
+    100% { transform: translate3d(0, 0, 0) scale(1) }
+  }
+  @keyframes mxRipple { to { transform: scale(2.8); opacity: 0 } }
+  @keyframes mxPageIn { from { opacity: 0; transform: translate3d(0, 12px, 0) } to { opacity: 1; transform: none } }
+
+  /* Smooth transition between pages */
+  .page.active { animation: mxPageIn 0.4s var(--ease-out); }
+
+  /* First-paint entrance — pure CSS, runs once, safe with JS disabled */
+  .topbar { animation: mxDown 0.5s var(--ease-out) both; }
+  header .header-inner { animation: mxDown 0.55s var(--ease-out) 0.06s both; }
+  .home-hero > h1 { animation: mxUp 0.6s var(--ease-out) 0.05s both; }
+  .home-hero > p { animation: mxUp 0.6s var(--ease-out) 0.13s both; }
+  .home-hero > .btn { animation: mxUp 0.6s var(--ease-out) 0.20s both; }
+  .home-hero > .support-line { animation: mxUp 0.6s var(--ease-out) 0.26s both; }
+  .home-hero > .wa-btn { animation: mxUp 0.6s var(--ease-out) 0.32s both; }
+
+  /* Scroll reveal — .reveal is added by JS only, so no-JS visitors see everything */
+  .reveal { opacity: 0; }
+  .rv-up { transform: translate3d(0, 22px, 0) }
+  .rv-down { transform: translate3d(0, -16px, 0) }
+  .rv-left { transform: translate3d(-24px, 0, 0) }
+  .rv-right { transform: translate3d(24px, 0, 0) }
+  .rv-scale { transform: scale(0.95) }
+  .reveal.is-in { opacity: 1; transform: none; transition: opacity var(--dur-3) var(--ease-out), transform var(--dur-3) var(--ease-out); transition-delay: var(--rd, 0ms); }
+  /* Once the entrance finishes, drop the long reveal transition + stagger delay so
+     later :hover lifts respond immediately instead of inheriting a ~300ms delay. */
+  .reveal.rv-done.is-in { transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
+
+  /* Floating bubbles — colours pulled from the existing palette */
+  .home-hero, .home-why { position: relative; overflow: hidden; }
+  .bubbles { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+  .bubble { position: absolute; border-radius: 50%; background: currentColor; animation: mxFloat var(--bd, 16s) ease-in-out var(--bdel, 0s) infinite; will-change: transform; }
+  .bubbles.paused .bubble { animation-play-state: paused; }
+  .home-hero > *:not(.bubbles), .home-why > *:not(.bubbles) { position: relative; z-index: 1; }
+
+  /* Images fade in once decoded */
+  html.js .card-img-wrap img, html.js .gallery-main img, html.js .cart-item img, html.js .admin-item img { opacity: 0; transition: opacity 0.5s var(--ease-out), transform 0.45s var(--ease-out); }
+  html.js .card-img-wrap img.is-loaded, html.js .gallery-main img.is-loaded, html.js .cart-item img.is-loaded, html.js .admin-item img.is-loaded { opacity: 1; }
+
+  /* Loading skeletons for the product grid */
+  .sk { background: linear-gradient(100deg, #eeeeee 20%, #fafafa 40%, #eeeeee 60%); background-size: 220% 100%; animation: mxShimmer 1.15s linear infinite; border-radius: 4px; }
+  .sk-card { border-radius: 4px; overflow: hidden; }
+  .sk-img { aspect-ratio: 1/1; border-radius: 0; }
+  .sk-body { padding-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .sk-line { height: 11px; }
+  .sk-w85 { width: 85%; } .sk-w55 { width: 55%; } .sk-w35 { width: 35%; }
+
+  /* Ripple + press feedback (JS injects the span) */
+  .btn, .send-btn, .checkout-btn, .pay-btn, .add-btn, .pagination a, .cart-item-edit, .admin-item button {
+    position: relative; overflow: hidden;
+  }
+  .ripple { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.5); transform: scale(0); pointer-events: none; animation: mxRipple 0.6s var(--ease-out) forwards; }
+  .btn.secondary .ripple, .pagination a .ripple, .cart-item-edit .ripple, .admin-item button .ripple { background: rgba(26,26,26,0.16); }
+  .pop { animation: mxPop 0.45s var(--ease-spring); }
+
+  /* Animated link underline (replaces the instant one, same affordance) */
+  .footer-links a, .topbar a, .nav-phone, .footer-support a.phone, .contact-info a.phone, .home-hero .support-line a { position: relative; text-decoration: none; }
+  .footer-links a::after, .topbar a::after, .nav-phone::after, .footer-support a.phone::after, .contact-info a.phone::after, .home-hero .support-line a::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 1.5px; border-radius: 2px;
+    background: currentColor; transform: scaleX(0); transform-origin: right center;
+    transition: transform 0.34s var(--ease-out);
+  }
+  .footer-links a:hover::after, .topbar a:hover::after, .nav-phone:hover::after, .footer-support a.phone:hover::after, .contact-info a.phone:hover::after, .home-hero .support-line a:hover::after { transform: scaleX(1); transform-origin: left center; }
+  .footer-links a:hover, .topbar a:hover, .nav-phone:hover, .footer-support a.phone:hover, .contact-info a.phone:hover, .home-hero .support-line a:hover { text-decoration: none; }
+
+  /* Nav drawer staggered entrance */
+  .nav-menu.open .nav-links a { animation: mxRight 0.4s var(--ease-out) both; }
+  .nav-menu.open .nav-links a:nth-child(1) { animation-delay: 0.05s }
+  .nav-menu.open .nav-links a:nth-child(2) { animation-delay: 0.11s }
+  .nav-menu.open .nav-links a:nth-child(3) { animation-delay: 0.17s }
+  .nav-menu.open .nav-links a:nth-child(4) { animation-delay: 0.23s }
+  .nav-menu.open .nav-support { animation: mxUp 0.45s var(--ease-out) 0.26s both; }
+
+  /* Hover elevation — pointer devices only, so touch never gets sticky hover states */
+  @media (hover: hover) and (pointer: fine) {
+    .btn { transition: transform var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out), background var(--dur-1) var(--ease-out); }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(26,26,26,0.22); }
+    .btn:active { transform: translateY(0) scale(0.985); }
+    .btn.secondary:hover { box-shadow: 0 8px 18px rgba(26,26,26,0.14); }
+
+    .card { transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(0,0,0,0.12); }
+    .card:hover .card-img-wrap img { transform: scale(1.06); }
+    .card:hover .card-title { color: #e6275f; transition: color var(--dur-1) var(--ease-out); }
+    .card-img-wrap img { transition: transform 0.45s var(--ease-out), opacity 0.5s var(--ease-out); }
+
+    .header-icons button { transition: transform var(--dur-1) var(--ease-spring), color var(--dur-1) var(--ease-out); }
+    .header-icons button:hover { transform: translateY(-2px) scale(1.06); color: #e6275f; }
+    .header-icons button:active { transform: scale(0.94); }
+
+    .sidebar .filter-list a { transition: transform var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out), background var(--dur-1) var(--ease-out); border-radius: 3px; padding-left: 6px; margin-left: -6px; }
+    .sidebar .filter-list a:hover { transform: translateX(3px); text-decoration: none; color: #e6275f; background: #f9f9f9; }
+    .sidebar .filter-list a.sold:hover { color: #999; }
+
+    .pagination a { transition: transform var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out), background var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out); }
+    .pagination a:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.08); }
+    .pagination a.active:hover { transform: none; box-shadow: none; }
+
+    .send-btn, .checkout-btn, .pay-btn { transition: transform var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out), filter var(--dur-1) var(--ease-out); }
+    .send-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(123,163,196,0.4); }
+    .checkout-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(147,179,204,0.45); }
+    .pay-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+    .pay-btn:active { transform: translateY(0) scale(0.985); }
+
+    .wa-btn { transition: transform var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out), background var(--dur-1) var(--ease-out); }
+    .wa-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(37,211,102,0.35); }
+    .wa-btn.large:hover { transform: translateY(-3px) scale(1.01); }
+
+    .gallery-thumbs img { transition: border-color var(--dur-1) var(--ease-out), transform var(--dur-1) var(--ease-out); }
+    .gallery-thumbs img:hover { transform: translateY(-3px) scale(1.03); border-color: #1a1a1a; }
+
+    .cart-item, .admin-item, .contact-info, .footer-support, .pay-steps, .screenshot-note { transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
+    .cart-item:hover, .admin-item:hover { transform: translateX(4px); }
+    .contact-info:hover, .footer-support:hover, .pay-steps:hover, .screenshot-note:hover { transform: translateY(-3px); box-shadow: 0 10px 26px rgba(0,0,0,0.07); }
+
+    .cart-item-edit, .admin-item button { transition: transform var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out), background var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out); }
+    .cart-item-edit:hover, .admin-item button:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+    .why-grid > div { transition: transform var(--dur-2) var(--ease-out); }
+    .why-grid > div:hover { transform: translateY(-4px); }
+
+    .nav-close { transition: transform var(--dur-1) var(--ease-spring), color var(--dur-1) var(--ease-out); }
+    .nav-close:hover { transform: rotate(90deg); }
+  }
+
+  /* Touch devices: keep a small tap-press cue instead of hover */
+  @media (hover: none) {
+    .btn:active, .send-btn:active, .checkout-btn:active, .pay-btn:active, .wa-btn:active,
+    .add-btn:active, .pagination a:active, .cart-item-edit:active, .admin-item button:active,
+    .header-icons button:active { transform: scale(0.97); }
+  }
+
+  /* Accessibility: honour the OS "reduce motion" setting */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      transition-delay: 0ms !important;
+      scroll-behavior: auto !important;
+    }
+    .reveal, .rv-up, .rv-down, .rv-left, .rv-right, .rv-scale { opacity: 1 !important; transform: none !important; }
+    html.js .card-img-wrap img, html.js .gallery-main img, html.js .cart-item img, html.js .admin-item img { opacity: 1 !important; }
+    .bubbles, .ripple { display: none !important; }
+  }
+</style>
+<script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+<div class="topbar">
+  Appliances, furniture, discount &amp; thrift, seasonal, sporting, fitness equipment and more!
+  &nbsp;|&nbsp;
+  Support: <a href="tel:+19807348301">+1 (980) 734-8301</a>
+  &nbsp;|&nbsp;
+  <a href="https://wa.me/19807348301?text=Hi%2C%20I%20need%20help%20with%20my%20order" target="_blank">WhatsApp Us</a>
+</div>
+
+<header>
+  <div class="header-inner">
+    <div class="logo" onclick="showPage('home')">
+      <span>BIG CATCH</span>
+      <span>SALVAGE</span>
+      <span>AND THRIFT</span>
+    </div>
+    <div class="header-icons">
+      <button onclick="showPage('shop')" title="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button onclick="showPage('adminLogin')" title="Sign In">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>
+      </button>
+      <button onclick="showPage('cart')" title="Cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        <span class="cart-badge" id="cart-count">0</span>
+      </button>
+      <button onclick="openMenu()" title="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- HOME PAGE -->
+<div id="page-home" class="page active">
+  <div class="home-hero">
+    <div class="bubbles" id="bubbles-hero" aria-hidden="true"></div>
+    <h1>BIG CATCH SALVAGE &amp; THRIFT</h1>
+    <p>Quality salvaged and thrift items — appliances, furniture, seasonal, sporting goods, and more. New deals added regularly.</p>
+    <button class="btn" onclick="showPage('shop')">Shop Now</button>
+    <div class="support-line">
+      Need help? Call <a href="tel:+19807348301">+1 (980) 734-8301</a>
+    </div>
+    <a href="https://wa.me/19807348301?text=Hi%2C%20I%20have%20a%20question%20about%20a%20product" target="_blank" class="wa-btn large" style="margin-top:16px;">
+      <svg viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Chat on WhatsApp
+    </a>
+  </div>
+  <div class="home-why">
+    <div class="bubbles" id="bubbles-why" aria-hidden="true"></div>
+    <h2 style="font-size:26px;font-weight:800;margin-bottom:16px;">Why shop with us?</h2>
+    <div class="why-grid">
+      <div><h3 style="font-size:18px;font-weight:700;margin-bottom:8px;">💰 Great Prices</h3><p style="color:#666;font-size:13px;line-height:1.5;">Deep discounts on quality salvage and thrift items.</p></div>
+      <div><h3 style="font-size:18px;font-weight:700;margin-bottom:8px;">📦 Local Pickup</h3><p style="color:#666;font-size:13px;line-height:1.5;">Many items available for pickup — no shipping delays.</p></div>
+      <div><h3 style="font-size:18px;font-weight:700;margin-bottom:8px;">💬 WhatsApp Support</h3><p style="color:#666;font-size:13px;line-height:1.5;">Chat with us directly — <a href="https://wa.me/19807348301" target="_blank" style="color:#25D366;font-weight:700;">+1 (980) 734-8301</a></p></div>
+    </div>
+    <button class="btn" style="margin-top:40px;" onclick="showPage('shop')">Browse All Products →</button>
+  </div>
+</div>
+
+<!-- SHOP PAGE -->
+<div id="page-shop" class="page">
+  <div class="layout">
+    <aside class="sidebar">
+      <h2>ALL PRODUCTS</h2>
+      <div class="filter-list" id="filter-list"></div>
+    </aside>
+    <main class="main">
+      <div class="main-head">
+        <h1>ALL PRODUCTS <span class="count" id="product-count"></span></h1>
+        <select id="sort" onchange="currentPage = 1; renderShop();">
+          <option value="default">Sort: Best Selling</option>
+          <option value="az">Alphabetically, A-Z</option>
+          <option value="za">Alphabetically, Z-A</option>
+          <option value="low">Price, low to high</option>
+          <option value="high">Price, high to low</option>
+        </select>
+      </div>
+      <div class="filter-toggles">
+        <label><input type="checkbox" id="hide-sold" onchange="currentPage = 1; renderShop();"> Hide sold items</label>
+        <label><input type="checkbox" id="only-sold" onchange="document.getElementById('hide-sold').checked=false; currentPage = 1; renderShop();"> Show only sold items</label>
+      </div>
+      <div id="product-grid" class="grid"></div>
+      <div class="pagination" id="pagination"></div>
+    </main>
+  </div>
+</div>
+
+<!-- PRODUCT DETAIL PAGE -->
+<div id="page-product" class="page">
+  <div class="container" id="product-view"></div>
+</div>
+
+<!-- CART PAGE -->
+<div id="page-cart" class="page">
+  <div class="container">
+    <h1 class="cart-title">Your cart</h1>
+    <div id="cart-items"></div>
+    <div id="cart-summary"></div>
+  </div>
+</div>
+
+<!-- CONTACT PAGE -->
+<div id="page-contact" class="page">
+  <div class="container">
+    <h1 class="contact-title">CONTACT US</h1>
+
+    <div class="contact-info">
+      <h3>💬 Customer Support</h3>
+      <p style="font-size:13px;color:#666;margin-bottom:16px;">
+        <strong>Fastest response:</strong> WhatsApp. Tap below to start chatting.
+      </p>
+      <a href="https://wa.me/19807348301?text=Hi%2C%20I%20need%20help%20with%20Big%20Catch%20Salvage" target="_blank" class="wa-btn large" style="margin-bottom:12px;">
+        <svg viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Chat on WhatsApp
+      </a>
+      <a class="phone" href="tel:+19807348301">+1 (980) 734-8301</a>
+      <p>Call, text, or WhatsApp — all reach the same number</p>
+    </div>
+
+    <form class="contact-form" onsubmit="event.preventDefault(); alert('Thank you! We will be in touch.'); this.reset();">
+      <label>Name</label>
+      <input type="text" required>
+      <label>Email</label>
+      <input type="email" required>
+      <label>Phone Number</label>
+      <input type="tel">
+      <label>Message</label>
+      <textarea></textarea>
+      <button class="send-btn" type="submit">SEND</button>
+    </form>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN PAGE -->
+<div id="page-adminLogin" class="page">
+  <div class="container">
+    <div class="admin-login-box">
+      <h2>Sign In</h2>
+      <p style="color:#666;font-size:13px;margin-bottom:24px;">Enter password to continue.</p>
+      <input type="password" id="admin-password" placeholder="Password">
+      <button class="btn" style="width:100%;" onclick="adminLogin()">Log In</button>
+      <div class="error" id="admin-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL PAGE -->
+<div id="page-admin" class="page">
+  <div class="container">
+    <div class="admin-head">
+      <h1 style="font-size:22px;font-weight:800;">Admin — Manage Products</h1>
+      <button class="btn secondary" onclick="showPage('home')">Exit Admin</button>
+    </div>
+    <div class="admin-form">
+      <label>Product Title</label>
+      <input id="f-title" type="text" placeholder="e.g. Keurig Coffee Maker">
+      <div class="row">
+        <div><label>Price ($)</label><input id="f-price" type="number" step="0.01" placeholder="45.00"></div>
+        <div><label>Sale Price (optional)</label><input id="f-sale" type="number" step="0.01" placeholder=""></div>
+      </div>
+      <label>Image URL</label>
+      <input id="f-image" type="text" placeholder="https://...">
+      <label class="checkbox-line"><input id="f-noship" type="checkbox"> No shipping (pickup only)</label>
+      <label class="checkbox-line"><input id="f-sold" type="checkbox"> Mark as SOLD</label>
+      <button class="btn" id="add-btn">Add Product</button>
+      <button class="btn secondary" id="cancel-btn" style="display:none;">Cancel Edit</button>
+    </div>
+    <h2 style="margin-bottom:16px;font-size:16px;">Products (<span id="admin-count">0</span>)</h2>
+    <div id="admin-list" class="admin-list"></div>
+    <hr style="margin:32px 0;border:none;border-top:1px solid #e5e5e5;">
+    <button class="btn secondary" id="reset-btn">Reset to Demo</button>
+  </div>
+</div>
+
+<!-- PAYMENT PAGE -->
+<div id="page-pay" class="page">
+  <div class="container">
+    <div class="pay-box" id="pay-view">
+      <h1 style="font-size:22px;font-weight:800;">Pay via QR Code</h1>
+      <p style="margin-top:12px;color:#666;font-size:13px;">Scan the QR below with your bank app, then confirm your order.</p>
+
+      <img class="qr" id="qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=REPLACE_WITH_YOUR_PAYMENT_LINK" alt="QR">
+      <div class="pay-total">Total: $<span id="pay-total">0.00</span></div>
+
+      <div class="pay-steps">
+        <h3>📋 How to complete your payment</h3>
+        <ol>
+          <li>Open your bank app or payment app</li>
+          <li>Scan the QR code above</li>
+          <li>Send <strong>exactly the amount shown</strong></li>
+          <li><strong>Take a screenshot</strong> of the payment confirmation</li>
+          <li>Send the screenshot to us on WhatsApp by tapping the green button below</li>
+          <li>Enter the last 4 digits of your reference and click "I've Paid"</li>
+        </ol>
+      </div>
+
+      <div class="screenshot-note">
+        <span class="icon">📸</span>
+        <div>
+          <strong>Don't forget your screenshot!</strong><br>
+          Send it via WhatsApp so we can confirm your order faster.
+        </div>
+      </div>
+
+      <input id="pay-ref" type="text" placeholder="Payment reference / last 4 digits">
+
+      <a href="https://wa.me/19807348301?text=Hi%2C%20I%27ve%20just%20made%20a%20payment.%20Here%20is%20my%20screenshot%20%F0%9F%93%B8" target="_blank" class="wa-btn block large">
+        <svg viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Send Screenshot on WhatsApp
+      </a>
+
+      <button class="btn" style="width:100%; margin-top:16px;" id="pay-confirm">I've Paid — Place Order</button>
+      <button class="btn secondary" style="width:100%;margin-top:8px;" onclick="showPage('cart')">← Back to Cart</button>
+
+      <div style="margin-top:20px;padding:16px;background:#f9f9f9;border-radius:6px;font-size:13px;color:#555;">
+        Need help paying? Message us on
+        <a href="https://wa.me/19807348301?text=Hi%2C%20I%20need%20help%20making%20a%20payment" target="_blank" style="color:#25D366;font-weight:700;">WhatsApp</a>
+        or call <a href="tel:+19807348301" style="color:#e6275f;font-weight:700;">+1 (980) 734-8301</a>
+      </div>
+    </div>
+
+    <div class="pay-box" id="done-view" style="display:none;">
+      <h1 style="color:#27ae60;font-size:26px;margin-top:60px;font-weight:800;">✓ Order Received</h1>
+      <p style="margin-top:16px;color:#666;">Thank you! We'll confirm your payment shortly.</p>
+      <p style="margin-top:8px;color:#888;font-size:13px;">Reference: <strong id="done-ref"></strong></p>
+
+      <div class="screenshot-note" style="margin-top:24px;text-align:left;">
+        <span class="icon">📸</span>
+        <div>
+          <strong>Forgot to send your screenshot?</strong><br>
+          Send it now on WhatsApp so we can verify your order faster.
+        </div>
+      </div>
+
+      <a href="https://wa.me/19807348301?text=Hi%2C%20I%27ve%20placed%20an%20order.%20Here%20is%20my%20payment%20screenshot%20%F0%9F%93%B8" target="_blank" class="wa-btn block large" style="margin-top:16px;">
+        <svg viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Send Screenshot on WhatsApp
+      </a>
+
+      <button class="btn" style="margin-top:24px;" onclick="showPage('shop')">Back to Shop</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a onclick="showPage('home')">Home</a>
+    <a onclick="showPage('shop')">Shop</a>
+    <a onclick="showPage('contact')">Contact Us</a>
+    <a>Privacy Policy</a>
+    <a>Refund Policy</a>
+    <a>Terms of Service</a>
+  </div>
+
+  <div class="footer-support">
+    <div class="label">Customer Support</div>
+    <a href="https://wa.me/19807348301?text=Hi%2C%20I%20need%20help" target="_blank" class="wa-btn" style="margin:8px auto;">
+      <svg viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      WhatsApp Us
+    </a>
+    <a href="tel:+19807348301" class="phone">+1 (980) 734-8301</a>
+  </div>
+
+  <div class="copyright">© 2026, Big Catch Salvage and Thrift — USA</div>
+</footer>
+
+<!-- FLOATING WHATSAPP BUTTON -->
+<a href="https://wa.me/19807348301?text=Hi%2C%20I%20have%20a%20question%20about%20Big%20Catch%20Salvage" target="_blank" class="wa-float" title="Chat on WhatsApp">
+  <svg viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<!-- SLIDE-OUT NAVIGATION MENU -->
+<div id="nav-overlay" class="nav-overlay" onclick="closeMenu()"></div>
+<aside id="nav-menu" class="nav-menu">
+  <div class="nav-menu-header">
+    <div class="nav-menu-title">MENU</div>
+    <button class="nav-close" onclick="closeMenu()" aria-label="Close menu">✕</button>
+  </div>
+
+  <nav class="nav-links">
+    <a onclick="closeMenu(); showPage('home')">🏠 Home</a>
+    <a onclick="closeMenu(); showPage('shop')">🛍️ Shop All Products</a>
+    <a onclick="closeMenu(); showPage('cart')">🛒 Your Cart</a>
+    <a onclick="closeMenu(); showPage('contact')">✉️ Contact Us</a>
+  </nav>
+
+  <div class="nav-divider"></div>
+
+  <div class="nav-support">
+    <div class="nav-support-title">Customer Support</div>
+    <a href="tel:+19807348301" class="nav-phone">📞 +1 (980) 734-8301</a>
+    <a href="https://wa.me/19807348301?text=Hi%2C%20I%20need%20help" target="_blank" class="wa-btn block" style="margin-top:12px;">
+      <svg viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      WhatsApp Support
+    </a>
+  </div>
+</aside>
+
+<script>
+  /* =========================================================
+     SEED DATA — with multiple images + sold flag
+  ========================================================= */
+  const SEED = [
+    { id: 1,  title: "Keurig K-Express Coffee Maker, Black",     price: 45.00,   salePrice: null,   images: ["https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?w=800&h=800&fit=crop"], noShipping: true,  sold: false },
+    { id: 2,  title: "Beige Velvet Dining Chairs, Set of 2",      price: 74.20,   salePrice: null,   images: ["https://images.unsplash.com/photo-1503602642458-232111445657?w=800&h=800&fit=crop"], noShipping: true,  sold: false },
+    { id: 3,  title: "12-Light Dimmable Tiered Chandelier",       price: 199.00,  salePrice: 129.00, images: ["https://images.unsplash.com/photo-1543198126-a8ad8e47fb22?w=800&h=800&fit=crop"], noShipping: true,  sold: false },
+    { id: 4,  title: "OtterBox Defender Case for iPhone 15 Pro",  price: 11.25,   salePrice: null,   images: ["https://images.unsplash.com/photo-1601593346740-925612772716?w=800&h=800&fit=crop"], noShipping: false, sold: false },
+    { id: 5,  title: "Otto 20 in. Gold Round Glass Side Table",   price: 69.00,   salePrice: null,   images: ["https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=800&h=800&fit=crop"], noShipping: false, sold: false },
+    { id: 6,  title: "4 in. Set of 14 Ceramic Fire Balls",        price: 89.00,   salePrice: 39.00,  images: ["https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?w=800&h=800&fit=crop"], noShipping: false, sold: false },
+    { id: 7,  title: "25\" Faux Boston Fern in Zinc Planter",     price: 89.00,   salePrice: 45.00,  images: ["https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=800&h=800&fit=crop"], noShipping: false, sold: false },
+    { id: 8,  title: "Beige Blue Gold Ocean Storm Wall Art",      price: 129.00,  salePrice: 49.00,  images: ["https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800&h=800&fit=crop"], noShipping: false, sold: false },
+    { id: 9,  title: "Modern Stainless Steel Refrigerator",       price: 1333.00, salePrice: null,   images: ["https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=800&h=800&fit=crop"], noShipping: true,  sold: false },
+    { id: 10, title: "Wooden Bookcase Storage Shelf",             price: 129.00,  salePrice: null,   images: ["https://images.unsplash.com/photo-1594620302200-9a762244a156?w=800&h=800&fit=crop"], noShipping: false, sold: false },
+    { id: 11, title: "Outdoor Patio Rug, Weather Resistant",      price: 89.00,   salePrice: 59.00,  images: ["https://images.unsplash.com/photo-1600166898405-da9535204843?w=800&h=800&fit=crop"], noShipping: false, sold: false },
+    { id: 12, title: "Queen Size Upholstered Headboard",          price: 225.00,  salePrice: 79.00,  images: ["https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800&h=800&fit=crop"], noShipping: true,  sold: false }
+  ];
+
+  /* ---------- STORAGE HELPERS ---------- */
+  function getProducts() {
+    const raw = localStorage.getItem('bc_products');
+    if (!raw) { localStorage.setItem('bc_products', JSON.stringify(SEED)); return SEED.slice(); }
+    try {
+      const parsed = JSON.parse(raw);
+      // Migrate old format (single image) to new (images array)
+      return parsed.map(p => ({
+        ...p,
+        images: p.images || (p.image ? [p.image] : ['https://placehold.co/800x800/e8e8e8/333333?text=Product']),
+        sold: p.sold === true
+      }));
+    } catch { return SEED.slice(); }
+  }
+  function saveProducts(list) { localStorage.setItem('bc_products', JSON.stringify(list)); }
+  function getCart() { try { return JSON.parse(localStorage.getItem('bc_cart')) || []; } catch { return []; } }
+  function saveCart(cart) { localStorage.setItem('bc_cart', JSON.stringify(cart)); updateCartCount(); }
+  function addToCart(id) {
+    const products = getProducts();
+    const p = products.find(x => x.id === id);
+    if (!p || p.sold) { alert('Sorry, this item is sold.'); return; }
+    const cart = getCart();
+    const existing = cart.find(i => i.id === id);
+    if (existing) existing.qty += 1;
+    else cart.push({ id, qty: 1 });
+    saveCart(cart);
+  }
+  function removeFromCart(id) { saveCart(getCart().filter(i => i.id !== id)); }
+  function updateCartCount() {
+    const count = getCart().reduce((sum, i) => sum + i.qty, 0);
+    const el = document.getElementById('cart-count');
+    if (el) {
+      const changed = el.textContent !== String(count);
+      el.textContent = count;
+      if (changed && window.popEl) popEl(el);
+    }
+  }
+  function cartTotal() {
+    const products = getProducts();
+    return getCart().reduce((sum, item) => {
+      const p = products.find(x => x.id === item.id);
+      if (!p) return sum;
+      return sum + (p.salePrice ?? p.price) * item.qty;
+    }, 0);
+  }
+  function getMainImage(p) {
+    return (p.images && p.images[0]) || p.image || 'https://placehold.co/800x800/eeeeee/999999?text=No+Image';
+  }
+
+  /* ---------- PAGE ROUTING ---------- */
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    if (name === 'shop') renderShop();
+    if (name === 'cart') renderCart();
+    if (name === 'admin') renderAdmin();
+    if (name === 'pay') renderPay();
+    if (name === 'adminLogin') {
+      document.getElementById('admin-password').value = '';
+      document.getElementById('admin-error').textContent = '';
+    }
+    window.scrollTo(0, 0);
+    if (window.revealScan) revealScan();
+  }
+
+  /* ---------- SLIDE-OUT MENU ---------- */
+  function openMenu() {
+    document.getElementById('nav-menu').classList.add('open');
+    document.getElementById('nav-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu() {
+    document.getElementById('nav-menu').classList.remove('open');
+    document.getElementById('nav-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+
+  /* ---------- SHOP RENDERING WITH PAGINATION + SOLD ---------- */
+  const PRODUCTS_PER_PAGE = 8;
+  let currentPage = 1;
+
+  function renderShop() {
+    const grid = document.getElementById('product-grid');
+    if (!grid) return;
+
+    let products = [...getProducts()];
+
+    // Filter by sold status
+    const hideSold = document.getElementById('hide-sold').checked;
+    const onlySold = document.getElementById('only-sold').checked;
+    if (hideSold) products = products.filter(p => !p.sold);
+    if (onlySold) products = products.filter(p => p.sold);
+
+    const sort = document.getElementById('sort').value;
+    if (sort === 'az') products.sort((a,b) => a.title.localeCompare(b.title));
+    if (sort === 'za') products.sort((a,b) => b.title.localeCompare(a.title));
+    if (sort === 'low') products.sort((a,b) => (a.salePrice ?? a.price) - (b.salePrice ?? b.price));
+    if (sort === 'high') products.sort((a,b) => (b.salePrice ?? b.price) - (a.salePrice ?? a.price));
+
+    const totalPages = Math.max(1, Math.ceil(products.length / PRODUCTS_PER_PAGE));
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const start = (currentPage - 1) * PRODUCTS_PER_PAGE;
+    const end = start + PRODUCTS_PER_PAGE;
+    const pageProducts = products.slice(start, end);
+
+    document.getElementById('product-count').textContent =
+      products.length === 0 ? 'no products' :
+      `Showing ${start + 1}–${Math.min(end, products.length)} of ${products.length} products`;
+
+    if (pageProducts.length === 0) {
+      grid.innerHTML = '<p style="padding:60px 20px;text-align:center;color:#999;grid-column:1/-1;">No products match your filters.</p>';
+      document.getElementById('pagination').innerHTML = '';
+      return;
+    }
+
+    const paintCards = () => {
+      grid.innerHTML = pageProducts.map(p => {
+        const onSale = p.salePrice != null;
+        const img = getMainImage(p);
+        return `
+          <div class="card ${p.sold ? 'sold' : ''}">
+            <div class="card-img-wrap" onclick="viewProduct(${p.id})">
+              ${onSale && !p.sold ? '<span class="badge-sale">Sale</span>' : ''}
+              ${p.noShipping ? '<span class="badge-noship">No Ship</span>' : ''}
+              ${p.sold ? '<span class="badge-sold">SOLD</span>' : ''}
+              <img src="${img}" alt="${p.title}" loading="lazy"
+                onerror="this.src='https://placehold.co/600x600/eeeeee/999999?text=No+Image'">
+            </div>
+            <div class="card-body">
+              <div class="card-title" onclick="viewProduct(${p.id})">${p.title}</div>
+              <div class="card-price">${onSale ? `<span class="was">$${p.price.toFixed(2)}</span><span class="now">$${p.salePrice.toFixed(2)}</span>` : `$${p.price.toFixed(2)}`}</div>
+              ${p.sold
+                ? `<button class="add-btn sold" disabled>SOLD OUT</button>`
+                : `<button class="add-btn" onclick="addToCart(${p.id}); this.textContent='✓ Added';">Add to Cart</button>`}
+            </div>
+          </div>`;
+      }).join('');
+      if (window.afterGridPaint) afterGridPaint();
+    };
+
+    /* Brief shimmer while the grid settles in.
+       The token guard discards stale paints if filters change mid-animation. */
+    if (window.showSkeletons && window.nextPaintToken) {
+      showSkeletons(grid, pageProducts.length);
+      const tk = nextPaintToken();
+      setTimeout(() => { if (isCurrentPaint(tk)) paintCards(); }, 300);
+    } else {
+      paintCards();
+    }
+
+    const filters = document.getElementById('filter-list');
+    if (filters) filters.innerHTML = products.map(p =>
+      `<a class="${p.sold ? 'sold' : ''}" onclick="scrollToProduct('${p.title.replace(/'/g,"\\'")}')">${p.title}${p.sold ? ' — SOLD' : ''}</a>`
+    ).join('');
+
+    renderPagination(totalPages);
+  }
+
+  function renderPagination(totalPages) {
+    const pag = document.getElementById('pagination');
+    if (!pag) return;
+    let html = '';
+    if (currentPage > 1) html += `<a onclick="goToPage(${currentPage - 1})">← Prev</a>`;
+    const pages = [];
+    const maxVisible = 5;
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 3) pages.push(1, 2, 3, 4, '…', totalPages);
+      else if (currentPage >= totalPages - 2) pages.push(1, '…', totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+      else pages.push(1, '…', currentPage - 1, currentPage, currentPage + 1, '…', totalPages);
+    }
+    pages.forEach(p => {
+      if (p === '…') html += `<span style="padding:6px 8px;color:#999;">…</span>`;
+      else if (p === currentPage) html += `<a class="active">${p}</a>`;
+      else html += `<a onclick="goToPage(${p})">${p}</a>`;
+    });
+    if (currentPage < totalPages) html += `<a onclick="goToPage(${currentPage + 1})">Next →</a>`;
+    pag.innerHTML = html;
+  }
+
+  function goToPage(page) {
+    currentPage = page;
+    renderShop();
+    const grid = document.getElementById('product-grid');
+    if (grid) {
+      const y = grid.getBoundingClientRect().top + window.scrollY - 120;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  }
+
+  function scrollToProduct(title) {
+    const cards = document.querySelectorAll('.card');
+    for (const c of cards) {
+      const t = c.querySelector('.card-title').textContent;
+      if (t === title) {
+        c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        c.style.outline = '2px solid #c0392b';
+        setTimeout(() => c.style.outline = '', 2000);
+        break;
+      }
+    }
+  }
+
+  /* ---------- PRODUCT DETAIL WITH GALLERY ---------- */
+  let currentProductId = null;
+  let currentImageIndex = 0;
+
+  function viewProduct(id) {
+    const p = getProducts().find(x => x.id === id);
+    if (!p) return;
+    currentProductId = id;
+    currentImageIndex = 0;
+    renderProductView(p);
+    showPage('product');
+  }
+
+  function renderProductView(p) {
+    const onSale = p.salePrice != null;
+    const images = p.images && p.images.length ? p.images : [getMainImage(p)];
+    const mainImg = images[currentImageIndex] || images[0];
+
+    document.getElementById('product-view').innerHTML = `
+      <a onclick="showPage('shop')" style="font-size:13px;color:#666;">← Back to shop</a>
+      <div class="product-detail">
+        <div class="product-gallery">
+          <div class="gallery-main">
+            ${p.sold ? '<span class="badge-sold-lg">SOLD</span>' : ''}
+            <img id="gallery-main-img" src="${mainImg}" alt="${p.title}"
+              onerror="this.src='https://placehold.co/800x800/eeeeee/999999?text=No+Image'">
+          </div>
+          ${images.length > 1 ? `
+            <div class="gallery-thumbs" id="gallery-thumbs" style="--thumbs:${Math.min(images.length, 6)}">
+              ${images.map((img, i) => `
+                <img src="${img}" class="${i === currentImageIndex ? 'active' : ''}"
+                  onclick="setMainImage(${i})"
+                  onerror="this.src='https://placehold.co/200x200/eeeeee/999999?text=?'">
+              `).join('')}
+            </div>` : ''}
+        </div>
+        <div>
+          <h1 style="font-size:22px;margin-bottom:16px;font-weight:800;">${p.title}</h1>
+          <div style="font-size:18px;margin-bottom:20px;">
+            ${onSale ? `<span style="text-decoration:line-through;color:#888;margin-right:10px;">$${p.price.toFixed(2)}</span><span style="color:#c0392b;font-weight:700;">$${p.salePrice.toFixed(2)}</span>` : `$${p.price.toFixed(2)}`}
+          </div>
+          ${p.noShipping ? '<p style="color:#c0392b;font-size:13px;margin-bottom:16px;">⚠ No shipping — pickup only</p>' : ''}
+          ${p.sold
+            ? '<p style="color:#c0392b;font-size:16px;font-weight:800;margin-bottom:16px;">SOLD — This item is no longer available.</p><button class="btn" style="width:100%;background:#999;cursor:not-allowed;" disabled>SOLD OUT</button>'
+            : `<button class="btn" style="width:100%;" onclick="addToCart(${p.id}); showPage('cart');">Add to Cart</button>`}
+          <a href="https://wa.me/19807348301?text=Hi%2C%20I%27m%20interested%20in%20${encodeURIComponent(p.title)}" target="_blank" class="wa-btn block" style="margin-top:12px;">
+            <svg viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Ask about this item on WhatsApp
+          </a>
+          <p style="font-size:12px;color:#888;margin-top:12px;">Or call <a href="tel:+19807348301" style="color:#e6275f;font-weight:700;">+1 (980) 734-8301</a></p>
+        </div>
+      </div>`;
+    if (window.revealScan) revealScan(document.getElementById('product-view'));
+  }
+
+  function setMainImage(index) {
+    const p = getProducts().find(x => x.id === currentProductId);
+    if (!p || !p.images) return;
+    currentImageIndex = index;
+    const mainImg = document.getElementById('gallery-main-img');
+    if (mainImg) mainImg.src = p.images[index];
+    // Update active thumbnail
+    const thumbs = document.querySelectorAll('#gallery-thumbs img');
+    thumbs.forEach((t, i) => t.classList.toggle('active', i === index));
+  }
+
+  /* ---------- CART RENDERING ---------- */
+  function renderCart() {
+    const itemsEl = document.getElementById('cart-items');
+    const summaryEl = document.getElementById('cart-summary');
+    if (!itemsEl) return;
+    const cart = getCart();
+    const products = getProducts();
+    if (cart.length === 0) {
+      itemsEl.innerHTML = '<p style="padding:40px 0;text-align:center;color:#888;">Your cart is empty.</p>';
+      summaryEl.innerHTML = '';
+      return;
+    }
+    itemsEl.innerHTML = cart.map(item => {
+      const p = products.find(x => x.id === item.id);
+      if (!p) return '';
+      const price = p.salePrice ?? p.price;
+      const img = getMainImage(p);
+      return `
+        <div class="cart-item">
+          <img src="${img}" alt="" onerror="this.src='https://placehold.co/200x200/eeeeee/999999?text=?'">
+          <div class="cart-item-info">
+            <h3>${p.title}${p.noShipping ? ' - NO SHIPPING!' : ''}</h3>
+          </div>
+          <div class="cart-item-price">$${(price * item.qty).toFixed(2)}</div>
+          <button class="cart-item-edit" onclick="removeFromCart(${p.id}); renderCart();">EDIT</button>
+        </div>`;
+    }).join('');
+    summaryEl.innerHTML = `
+      <div class="cart-summary">
+        <div class="cart-subtotal"><span>Subtotal</span><span>$${cartTotal().toFixed(2)}</span></div>
+        <div class="cart-installment">4 interest-free installments, or from $${(cartTotal()/4/1.4).toFixed(2)}/mo with <a>shop</a> ⓘ</div>
+        <div class="cart-shipping-note">Shipping & taxes calculated at checkout</div>
+        <button class="checkout-btn" onclick="showPage('pay')">CHECK OUT</button>
+        <div class="pay-buttons">
+          <button class="pay-btn pay-shop" onclick="showPage('pay')">shop</button>
+          <button class="pay-btn pay-apple" onclick="showPage('pay')">Pay</button>
+          <button class="pay-btn pay-paypal" onclick="showPage('pay')">PayPal</button>
+        </div>
+        <a href="https://wa.me/19807348301?text=Hi%2C%20I%20need%20help%20with%20my%20cart" target="_blank" class="wa-btn block" style="margin-top:20px;">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Need help? Chat on WhatsApp
+        </a>
+      </div>`;
+    if (window.revealScan) revealScan(document.getElementById('page-cart'));
+  }
+
+  /* ---------- ADMIN LOGIN ---------- */
+  const ADMIN_PASSWORD = "bigcatch2026";
+  function adminLogin() {
+    const pw = document.getElementById('admin-password').value;
+    if (pw === ADMIN_PASSWORD) {
+      document.getElementById('admin-error').textContent = '';
+      showPage('admin');
+    } else {
+      document.getElementById('admin-error').textContent = 'Incorrect password. Try again.';
+    }
+  }
+
+  /* ---------- ADMIN PANEL ---------- */
+  let editingId = null;
+  function renderAdmin() {
+    const list = document.getElementById('admin-list');
+    if (!list) return;
+    const products = getProducts();
+    document.getElementById('admin-count').textContent = products.length;
+    list.innerHTML = products.map(p => `
+      <div class="admin-item">
+        <img src="${getMainImage(p)}" onerror="this.src='https://placehold.co/100x100/eeeeee/999999?text=?'">
+        <div class="admin-item-info">
+          <div style="font-weight:600;">${p.title}${p.sold ? ' <span style="color:#c0392b;">[SOLD]</span>' : ''}</div>
+          <div style="color:#666;margin-top:2px;">$${p.price.toFixed(2)}${p.salePrice != null ? ` → $${p.salePrice.toFixed(2)}` : ''}${p.noShipping ? ' • No Shipping' : ''}${p.images && p.images.length > 1 ? ` • ${p.images.length} images` : ''}</div>
+        </div>
+        <div class="admin-item-actions">
+          <button onclick="editProduct(${p.id})">Edit</button>
+          <button class="delete" onclick="deleteProduct(${p.id})">Delete</button>
+        </div>
+      </div>`).join('');
+    if (window.revealScan) revealScan(list);
+  }
+
+  function addProduct() {
+    const title = document.getElementById('f-title').value.trim();
+    const price = parseFloat(document.getElementById('f-price').value);
+    const saleVal = document.getElementById('f-sale').value.trim();
+    const salePrice = saleVal === '' ? null : parseFloat(saleVal);
+    const image = document.getElementById('f-image').value.trim() ||
+      'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=800&fit=crop';
+    const noShipping = document.getElementById('f-noship').checked;
+    const sold = document.getElementById('f-sold').checked;
+    if (!title || isNaN(price)) { alert('Title and price are required.'); return; }
+    const products = getProducts();
+    if (editingId != null) {
+      const p = products.find(x => x.id === editingId);
+      if (p) {
+        // Preserve existing additional images, update main image
+        const existingExtras = (p.images || []).slice(1);
+        const newImages = [image, ...existingExtras].filter(Boolean);
+        Object.assign(p, { title, price, salePrice, images: newImages, noShipping, sold });
+      }
+      editingId = null;
+      document.getElementById('add-btn').textContent = 'Add Product';
+      document.getElementById('cancel-btn').style.display = 'none';
+    } else {
+      const newId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 1;
+      products.push({ id: newId, title, price, salePrice, images: [image], noShipping, sold });
+    }
+    saveProducts(products);
+    clearForm();
+    renderAdmin();
+  }
+
+  function editProduct(id) {
+    const p = getProducts().find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('f-title').value = p.title;
+    document.getElementById('f-price').value = p.price;
+    document.getElementById('f-sale').value = p.salePrice ?? '';
+    document.getElementById('f-image').value = getMainImage(p);
+    document.getElementById('f-noship').checked = p.noShipping;
+    document.getElementById('f-sold').checked = p.sold === true;
+    editingId = id;
+    document.getElementById('add-btn').textContent = 'Update Product';
+    document.getElementById('cancel-btn').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function cancelEdit() {
+    editingId = null;
+    clearForm();
+    document.getElementById('add-btn').textContent = 'Add Product';
+    document.getElementById('cancel-btn').style.display = 'none';
+  }
+  function clearForm() {
+    ['f-title','f-price','f-sale','f-image'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f-noship').checked = false;
+    document.getElementById('f-sold').checked = false;
+  }
+  function deleteProduct(id) {
+    if (!confirm('Delete this product?')) return;
+    saveProducts(getProducts().filter(p => p.id !== id));
+    renderAdmin();
+  }
+  function resetProducts() {
+    if (!confirm('Reset all products to demo defaults?')) return;
+    localStorage.setItem('bc_products', JSON.stringify(SEED));
+    renderAdmin();
+  }
+
+  /* ---------- PAYMENT ---------- */
+  function renderPay() { document.getElementById('pay-total').textContent = cartTotal().toFixed(2); }
+  function confirmPayment() {
+    const ref = document.getElementById('pay-ref').value.trim();
+    if (!ref) { alert('Please enter your payment reference.'); return; }
+    const orders = JSON.parse(localStorage.getItem('bc_orders') || '[]');
+    orders.push({ ref, total: cartTotal(), items: getCart(), date: new Date().toISOString() });
+    localStorage.setItem('bc_orders', JSON.stringify(orders));
+    document.getElementById('done-ref').textContent = ref;
+    saveCart([]);
+    document.getElementById('pay-view').style.display = 'none';
+    document.getElementById('done-view').style.display = 'block';
+  }
+
+  /* ---------- INIT ---------- */
+  document.addEventListener('DOMContentLoaded', () => {
+    getProducts();
+    updateCartCount();
+    renderShop();
+    document.getElementById('add-btn').addEventListener('click', addProduct);
+    document.getElementById('cancel-btn').addEventListener('click', cancelEdit);
+    document.getElementById('reset-btn').addEventListener('click', resetProducts);
+    document.getElementById('pay-confirm').addEventListener('click', confirmPayment);
+  });
+</script>
+
+<script>
+/* =========================================================
+   MOTION — scroll reveals, loading skeletons, hover
+   micro-interactions and floating bubbles.
+   Vanilla JS only, no libraries.
+   ========================================================= */
+(function () {
+  'use strict';
+
+  var reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var hasIO    = 'IntersectionObserver' in window;
+  var motionOn = !reduceMQ.matches && hasIO;
+
+  /* ---------- Floating bubbles (existing brand palette) ---------- */
+  var PALETTE = ['#e6275f', '#93b3cc', '#7ba3c4', '#4a90c4', '#ffc439', '#25D366'];
+
+  function seedBubbles(host, count, cfg) {
+    if (!host || host.dataset.seeded) return;
+    host.dataset.seeded = '1';
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < count; i++) {
+      var b = document.createElement('span');
+      b.className = 'bubble';
+      var size = cfg.min + Math.random() * (cfg.max - cfg.min);
+      b.style.width   = size.toFixed(1) + 'px';
+      b.style.height  = size.toFixed(1) + 'px';
+      b.style.color   = PALETTE[i % PALETTE.length];
+      b.style.left    = (Math.random() * 96).toFixed(2) + '%';
+      b.style.top     = (Math.random() * 90).toFixed(2) + '%';
+      b.style.opacity = (cfg.op[0] + Math.random() * (cfg.op[1] - cfg.op[0])).toFixed(2);
+      b.style.setProperty('--bd',   (cfg.dur[0] + Math.random() * (cfg.dur[1] - cfg.dur[0])).toFixed(1) + 's');
+      /* negative delay => already mid-flight on load, so they never pop in together */
+      b.style.setProperty('--bdel', (-Math.random() * 14).toFixed(1) + 's');
+      frag.appendChild(b);
+    }
+    host.appendChild(frag);
+
+    /* Pause the animation when scrolled out of view (saves battery) */
+    if (hasIO) {
+      new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { host.classList.toggle('paused', !e.isIntersecting); });
+      }, { threshold: 0 }).observe(host);
+    }
+  }
+
+  function initBubbles() {
+    if (!motionOn) return;
+    var small = window.matchMedia('(max-width: 700px)').matches;
+    seedBubbles(document.getElementById('bubbles-hero'), small ? 9 : 16, { min: 6, max: 26, dur: [14, 26], op: [0.14, 0.34] });
+    seedBubbles(document.getElementById('bubbles-why'),  small ? 5 : 8,  { min: 5, max: 16, dur: [18, 30], op: [0.07, 0.16] });
+  }
+
+  /* ---------- Image fade-in ---------- */
+  function fadeImagesIn(root) {
+    var scope = root || document;
+    if (!scope || !scope.querySelectorAll) return;
+    var imgs = scope.querySelectorAll('.card-img-wrap img, .gallery-main img, .cart-item img, .admin-item img');
+    Array.prototype.forEach.call(imgs, function (im) {
+      if (im.dataset.fade) return;
+      im.dataset.fade = '1';
+      if (im.complete) { im.classList.add('is-loaded'); return; }
+      im.addEventListener('load',  function () { im.classList.add('is-loaded'); }, { once: true });
+      im.addEventListener('error', function () { im.classList.add('is-loaded'); }, { once: true });
+    });
+  }
+
+  /* ---------- Scroll reveal ---------- */
+  var REVEAL = [
+    ['.why-grid > div',                 'up',    80],
+    ['.main-head',                      'down',   0],
+    ['.filter-toggles',                 'up',     0],
+    ['.sidebar',                        'left',   0],
+    ['.card',                           'up',    55],
+    ['.pagination',                     'up',     0],
+    ['.product-gallery',                'left',   0],
+    ['.product-detail > div:last-child','right', 90],
+    ['.cart-title',                     'up',     0],
+    ['.cart-item',                      'up',    70],
+    ['.cart-summary',                   'up',    90],
+    ['.contact-title',                  'up',     0],
+    ['.contact-info',                   'up',    70],
+    ['.contact-form',                   'up',    70],
+    ['.pay-box',                        'scale',  0],
+    ['.admin-head',                     'down',   0],
+    ['.admin-form',                     'up',     0],
+    ['.admin-item',                     'up',    55]
+  ];
+
+  var revealObserver = null;
+  function getRevealObserver() {
+    if (!revealObserver) {
+      revealObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          e.target.classList.add('is-in');
+          revealObserver.unobserve(e.target);
+          var wait = (parseInt(e.target.dataset.rvDelay, 10) || 0) + 700;
+          setTimeout(function () { e.target.classList.add('rv-done'); }, wait);
+        });
+      }, { rootMargin: '0px 0px -6% 0px', threshold: 0.06 });
+    }
+    return revealObserver;
+  }
+
+  function revealScan(root) {
+    fadeImagesIn(root);
+    if (!motionOn) return;
+    var scope = root || document.querySelector('.page.active') || document.body;
+    if (!scope || !scope.querySelectorAll) return;
+    var obs = getRevealObserver();
+    REVEAL.forEach(function (rule) {
+      var list;
+      try { list = scope.querySelectorAll(rule[0]); } catch (err) { return; }
+      Array.prototype.forEach.call(list, function (el, i) {
+        if (el.dataset.revealed) return;
+        el.dataset.revealed = '1';
+        el.classList.add('reveal', 'rv-' + rule[1]);
+        var delay = i * rule[2];
+        el.style.setProperty('--rd', delay + 'ms');
+        el.dataset.rvDelay = String(delay);
+        obs.observe(el);
+      });
+    });
+  }
+  /* ---------- Loading skeletons for the product grid ---------- */
+  var paintToken = 0;
+  function skeletonHTML(n) {
+    var out = '';
+    for (var i = 0; i < n; i++) {
+      out += '<div class="sk-card" aria-hidden="true">' +
+               '<div class="sk sk-img"></div>' +
+               '<div class="sk-body">' +
+                 '<div class="sk sk-line sk-w85"></div>' +
+                 '<div class="sk sk-line sk-w55"></div>' +
+                 '<div class="sk sk-line sk-w35"></div>' +
+               '</div>' +
+             '</div>';
+    }
+    return out;
+  }
+
+  /* ---------- Micro-interactions ---------- */
+  function popEl(el) {
+    if (!el || !motionOn) return;
+    el.classList.remove('pop');
+    void el.offsetWidth;           /* force reflow so the animation restarts */
+    el.classList.add('pop');
+  }
+
+  function closestEl(e, sel) {
+    var t = e.target;
+    if (!t || !t.closest) return null;
+    return t.closest(sel);
+  }
+
+  document.addEventListener('click', function (e) {
+    if (!motionOn) return;
+    var btn = closestEl(e, '.btn, .send-btn, .checkout-btn, .pay-btn, .add-btn, .cart-item-edit, .pagination a, .admin-item button');
+    if (!btn || btn.disabled) return;
+    var r = btn.getBoundingClientRect();
+    var d = Math.max(r.width, r.height);
+    var s = document.createElement('span');
+    s.className = 'ripple';
+    s.style.width = s.style.height = d + 'px';
+    s.style.left = (e.clientX - r.left - d / 2) + 'px';
+    s.style.top  = (e.clientY - r.top  - d / 2) + 'px';
+    btn.appendChild(s);
+    setTimeout(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 620);
+  }, { passive: true });
+
+  document.addEventListener('click', function (e) {
+    if (!motionOn) return;
+    var b = closestEl(e, '.add-btn');
+    if (b) popEl(b);
+  }, { passive: true });
+
+  /* ---------- Public hooks used by the page scripts ---------- */
+  window.revealScan     = revealScan;
+  window.fadeImagesIn   = fadeImagesIn;
+  window.popEl          = popEl;
+  window.showSkeletons  = function (grid, n) { grid.innerHTML = skeletonHTML(n || 8); };
+  window.nextPaintToken = function () { return ++paintToken; };
+  window.isCurrentPaint = function (t) { return t === paintToken; };
+  window.afterGridPaint = function () { revealScan(document.getElementById('product-grid')); };
+
+  /* ---------- Init ---------- */
+  function boot() { initBubbles(); revealScan(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  /* If the user turns reduce-motion on mid-session, reveal everything at once */
+  function onPrefChange(e) {
+    if (!e.matches) return;
+    var all = document.querySelectorAll('.reveal');
+    Array.prototype.forEach.call(all, function (el) { el.classList.add('is-in'); });
+  }
+  if (reduceMQ.addEventListener) reduceMQ.addEventListener('change', onPrefChange);
+  else if (reduceMQ.addListener) reduceMQ.addListener(onPrefChange);
+})();
+</script>
+
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/6abd6d38574d76344318c7ab/1k3pv59k0';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+<!--End of Tawk.to Script-->
+
+</body>
+</html>
