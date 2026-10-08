@@ -517,7 +517,6 @@
 
       <div class="pay-total">Total: $<span id="pay-total">0.00</span></div>
 
-      <!-- ===== PAYMENT METHOD PICKER ===== -->
       <div class="pay-methods">
         <button class="pay-method-btn" onclick="requestPayment('card')">
           <span class="pm-icon">💳</span>
@@ -567,7 +566,6 @@
 
       <div class="pay-divider">or scan QR code</div>
 
-      <!-- ===== QR CODE BACKUP ===== -->
       <div class="qr-section">
         <h3>📱 Scan to Pay</h3>
         <p>Use your bank app to scan and pay the exact amount.</p>
@@ -763,6 +761,7 @@
     else if (parts[0] === 'cart') showPage('cart');
     else if (parts[0] === 'contact') showPage('contact');
     else if (parts[0] === 'home') showPage('home');
+    else if (parts[0] === 'pay') showPage('pay');
     else showPage('shop');
   }
   window.addEventListener('hashchange', handleHash);
@@ -1016,10 +1015,10 @@
       whatsapp: 'I have a question about payment. Please help me complete my order.'
     };
 
-    const method = methodLabels[method] || '💬 Just message us';
+    const label = methodLabels[method] || '💬 Just message us';
     const request = methodRequests[method] || 'Please send me your payment details.';
 
-    const message = `Hi Big Catch! 👋\n\nI'd like to pay using: ${method}\n\n*Order Ref:* ${orderRef}\n*Total:* $${total}\n\n*My items:*\n${items}\n\n${request}\n\nThanks!`;
+    const message = `Hi Big Catch! 👋\n\nI'd like to pay using: ${label}\n\n*Order Ref:* ${orderRef}\n*Total:* $${total}\n\n*My items:*\n${items}\n\n${request}\n\nThanks!`;
 
     const url = 'https://wa.me/19807348301?text=' + encodeURIComponent(message);
     window.open(url, '_blank');
