@@ -2,14 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Big Catch Salvage and Thrift</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; color: #2c2c2c; background: #fff; font-size: 14px; animation: pageFadeIn 0.6s ease-out; }
+  html { scroll-behavior: smooth; overflow-x: clip; -webkit-text-size-adjust: 100%; }
+  body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; color: #2c2c2c; background: #fff; font-size: 14px; overflow-x: clip; animation: pageFadeIn 0.6s ease-out; }
   a { color: inherit; text-decoration: none; cursor: pointer; }
   button { font-family: inherit; }
+  img { max-width: 100%; height: auto; }
+  h1, h2, h3, h4, p, li, span, div, a, td, th, label, strong { overflow-wrap: break-word; word-wrap: break-word; }
 
   .topbar { background: #e6275f; color: #fff; text-align: center; padding: 14px 20px; font-size: 13px; font-weight: 700; line-height: 1.4; }
   .topbar a { color: #fff; text-decoration: underline; }
@@ -108,7 +110,6 @@
   .contact-info h3 { font-size: 16px; font-weight: 800; margin-bottom: 12px; }
   .contact-info a.phone { font-size: 22px; font-weight: 800; color: #e6275f; display: block; margin: 8px 0; }
 
-  /* WhatsApp buttons */
   .wa-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: #25D366; color: #fff; padding: 14px 28px; border-radius: 6px; font-size: 14px; font-weight: 700; border: none; cursor: pointer; text-decoration: none; line-height: 1; position: relative; overflow: hidden; transition: all 0.3s ease; }
   .wa-btn:hover { background: #1ebe5b; color: #fff; transform: translateY(-2px); box-shadow: 0 10px 28px rgba(37, 211, 102, 0.4); }
   .wa-btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255,255,255,0.25); transform: translate(-50%, -50%); transition: width 0.5s ease, height 0.5s ease; pointer-events: none; }
@@ -118,7 +119,6 @@
   .wa-btn.large svg { width: 24px; height: 24px; }
   .wa-btn.block { display: flex; width: 100%; max-width: 400px; margin: 12px auto 0; }
 
-  /* Floating WhatsApp */
   .wa-float { position: fixed; bottom: 90px; right: 20px; z-index: 99; width: 60px; height: 60px; border-radius: 50%; background: #25D366; color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; animation: waPulse 3s ease-in-out infinite; transition: transform 0.3s ease; }
   .wa-float:hover { transform: scale(1.12) translateY(-2px); color: #fff; }
   .wa-float svg { width: 36px; height: 36px; fill: #fff; display: block; }
@@ -128,6 +128,41 @@
   .pay-steps ol { padding-left: 20px; font-size: 13px; color: #555; line-height: 1.8; }
   .screenshot-note { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px; padding: 16px; margin: 16px 0; font-size: 13px; color: #2e7d32; display: flex; align-items: flex-start; gap: 10px; text-align: left; }
   .screenshot-note .icon { font-size: 20px; }
+
+  /* WhatsApp Payment Info Box */
+  .wa-pay-box {
+    background: #e8f5e9;
+    border: 2px solid #25D366;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 24px 0;
+    text-align: center;
+    animation: waPulseSoft 3s ease-in-out infinite;
+  }
+  @keyframes waPulseSoft {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(37, 211, 102, 0); }
+  }
+  .wa-pay-box h4 {
+    font-size: 15px;
+    font-weight: 800;
+    color: #1b5e20;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .wa-pay-box p {
+    font-size: 13px;
+    color: #2e7d32;
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  .wa-pay-box .wa-btn {
+    margin: 0 auto;
+  }
+
   footer { padding: 40px 24px; text-align: center; color: #555; font-size: 13px; margin-top: 40px; position: relative; z-index: 2; }
   .footer-links { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-bottom: 20px; }
   .footer-links a { background-image: linear-gradient(currentColor, currentColor); background-position: 0% 100%; background-repeat: no-repeat; background-size: 0% 2px; transition: background-size 0.3s ease, color 0.25s ease; }
@@ -179,7 +214,6 @@
   .share-btn.wa:hover { background: #1ebe5b; }
   .share-btn.wa svg { fill: #fff; }
 
-  /* POLICY MODALS */
   .policy-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); z-index: 1000; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
   .policy-modal.open { display: flex; }
   .policy-modal-content { background: #fff; max-width: 720px; width: 100%; max-height: 85vh; overflow-y: auto; border-radius: 10px; padding: 40px 36px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.35); }
@@ -194,7 +228,6 @@
   #policy-body a { color: #e6275f; font-weight: 600; text-decoration: underline; }
   #policy-body strong { color: #2c2c2c; }
 
-  /* BUBBLES */
   .bubbles-container { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; opacity: 0.55; }
   .bubble { position: absolute; bottom: -120px; border-radius: 50%; opacity: 0; animation: bubbleRise linear infinite; will-change: transform, opacity; }
   .bubble.pink { background: radial-gradient(circle at 30% 30%, #ff7ba5, #e6275f); }
@@ -210,7 +243,6 @@
   .bubble:nth-child(7) { left: 85%; width: 10px; height: 10px; animation-duration: 15s; animation-delay: 5s; }
   .bubble:nth-child(8) { left: 93%; width: 16px; height: 16px; animation-duration: 19s; animation-delay: 7s; }
 
-  /* REVEAL ANIMATIONS */
   .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1); will-change: opacity, transform; }
   .reveal.visible { opacity: 1; transform: translateY(0); }
   .stagger > * { opacity: 0; transform: translateY(24px); animation: cardSlideIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -223,7 +255,6 @@
   .stagger > *:nth-child(7) { animation-delay: 0.35s; }
   .stagger > *:nth-child(8) { animation-delay: 0.40s; }
 
-  /* KEYFRAMES */
   @keyframes pageFadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes cardSlideIn { to { opacity: 1; transform: translateY(0); } }
   @keyframes waPulse { 0%, 100% { box-shadow: 0 4px 16px rgba(37, 211, 102, 0.5); } 50% { box-shadow: 0 6px 28px rgba(37, 211, 102, 0.85); } }
@@ -257,12 +288,12 @@
     .bubble:nth-child(n+6) { display: none; }
     .card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
     .card:hover .card-img-wrap img { transform: scale(1.03); }
+    .card .add-btn { opacity: 1; transform: translateY(0); }
   }
 </style>
 </head>
 <body>
 
-<!-- Floating Bubbles -->
 <div class="bubbles-container" aria-hidden="true">
   <span class="bubble pink"></span>
   <span class="bubble green"></span>
@@ -380,27 +411,47 @@
 <div id="page-pay" class="page">
   <div class="container">
     <div class="pay-box" id="pay-view">
-      <h1 style="font-size:22px;font-weight:800;">Pay via QR Code</h1>
-      <p style="margin-top:12px;color:#666;font-size:13px;">Scan the QR below with your bank app, then confirm your order.</p>
+      <h1 style="font-size:22px;font-weight:800;">Complete Your Payment</h1>
+      <p style="margin-top:12px;color:#666;font-size:13px;">Two ways to pay — choose what's easiest for you.</p>
+
+      <!-- ===== OPTION 1: WhatsApp Request ===== -->
+      <div class="wa-pay-box">
+        <h4>💬 Fastest — WhatsApp</h4>
+        <p>Get payment details sent directly to your WhatsApp.<br>Just tap the button below.</p>
+        <a href="#" id="wa-pay-info-btn" target="_blank" class="wa-btn">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Request Payment Info on WhatsApp
+        </a>
+      </div>
+
+      <p style="text-align:center;color:#999;font-size:12px;margin:20px 0;">— OR —</p>
+
+      <!-- ===== OPTION 2: QR Code ===== -->
+      <h3 style="font-size:15px;font-weight:800;color:#2c2c2c;margin-bottom:4px;">Scan QR Code</h3>
+      <p style="color:#666;font-size:12px;margin-bottom:8px;">Use your bank app to scan and pay.</p>
       <img class="qr" id="qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=REPLACE_WITH_YOUR_PAYMENT_LINK" alt="QR">
       <div class="pay-total">Total: $<span id="pay-total">0.00</span></div>
+
       <div class="pay-steps">
-        <h3>📋 How to complete your payment</h3>
+        <h3>📋 Steps</h3>
         <ol>
-          <li>Open your bank app</li>
-          <li>Scan the QR code above</li>
+          <li>Scan the QR code or use WhatsApp button above</li>
           <li>Send <strong>exactly the amount shown</strong></li>
-          <li><strong>Take a screenshot</strong> of the confirmation</li>
+          <li><strong>Take a screenshot</strong> of the payment</li>
           <li>Send us the screenshot on WhatsApp</li>
           <li>Enter reference below and click "I've Paid"</li>
         </ol>
       </div>
-      <div class="screenshot-note"><span class="icon">📸</span><div><strong>Don't forget your screenshot!</strong></div></div>
+
+      <div class="screenshot-note"><span class="icon">📸</span><div><strong>Don't forget your screenshot!</strong> It speeds up your order confirmation.</div></div>
+
       <input id="pay-ref" type="text" placeholder="Payment reference / last 4 digits">
+
       <a href="https://wa.me/19807348301?text=Hi%2C%20I%27ve%20made%20a%20payment.%20Here%20is%20my%20screenshot" target="_blank" class="wa-btn block large">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
         Send Screenshot on WhatsApp
       </a>
+
       <button class="btn" style="width:100%;margin-top:16px;" id="pay-confirm">I've Paid — Place Order</button>
       <button class="btn secondary" style="width:100%;margin-top:8px;" onclick="showPage('cart')">← Back to Cart</button>
     </div>
@@ -794,7 +845,30 @@
     }
   }
 
-  function renderPay() { document.getElementById('pay-total').textContent = cartTotal().toFixed(2); }
+  function renderPay() {
+    document.getElementById('pay-total').textContent = cartTotal().toFixed(2);
+    updatePayInfoLink();
+  }
+
+  function updatePayInfoLink() {
+    const btn = document.getElementById('wa-pay-info-btn');
+    if (!btn) return;
+    const total = cartTotal().toFixed(2);
+    const cart = getCart();
+    const items = cart.map(item => {
+      const p = allProducts.find(x => String(x.id) === String(item.id));
+      if (!p) return '';
+      const price = (p.salePrice ?? p.price) * item.qty;
+      return `• ${p.title} (x${item.qty}) — $${price.toFixed(2)}`;
+    }).filter(Boolean).join('\n');
+
+    const orderRef = 'BC-' + Date.now().toString().slice(-6);
+
+    const message = `Hi Big Catch! 👋\n\nI'd like to pay for my order. Please send me your payment info (QR code / bank details).\n\n*Order Ref:* ${orderRef}\n\n*My items:*\n${items}\n\n*Total: $${total}*\n\nThanks!`;
+
+    btn.href = 'https://wa.me/19807348301?text=' + encodeURIComponent(message);
+  }
+
   function confirmPayment() {
     const ref = document.getElementById('pay-ref').value.trim();
     if (!ref) { alert('Please enter your payment reference.'); return; }
@@ -851,6 +925,7 @@
   window.openPolicy = openPolicy;
   window.closePolicy = closePolicy;
   window.currentPage = currentPage;
+  window.updatePayInfoLink = updatePayInfoLink;
 </script>
 
 <script>
@@ -860,7 +935,6 @@
     }
   });
 
-  // ---------- ANIMATIONS SCRIPT ----------
   (function() {
     'use strict';
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
